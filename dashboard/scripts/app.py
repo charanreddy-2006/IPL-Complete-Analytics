@@ -15,6 +15,7 @@ st.set_page_config(
 )
 
 
+
 # ======================================================
 # LOAD CSS
 # ======================================================
@@ -42,12 +43,11 @@ load_css()
 
 
 # ======================================================
-# LOAD DATA (FINAL FIXED PATH)
+# LOAD DATA
 # ======================================================
 
 @st.cache_data
 def load_data():
-
 
     PROJECT_ROOT = os.path.abspath(
         os.path.join(
@@ -78,14 +78,7 @@ def load_data():
         "❌ IPL Dataset Not Found"
     )
 
-
-    st.write(
-        "Expected Location:"
-    )
-
-
     st.code(dataset_path)
-
 
     st.stop()
 
@@ -121,6 +114,17 @@ def find_col(names):
 
     return None
 
+
+
+# ======================================================
+# COLUMN MAPPING
+# ======================================================
+
+match_col = find_col(
+    [
+        "match_id"
+    ]
+)
 
 
 season_col = find_col(
@@ -163,6 +167,7 @@ venue_col = find_col(
 
 runs_col = find_col(
     [
+        "runs_scored",
         "total_runs",
         "runs"
     ]
@@ -172,7 +177,8 @@ runs_col = find_col(
 player_col = find_col(
     [
         "player_of_match",
-        "player"
+        "player",
+        "pom"
     ]
 )
 
@@ -207,7 +213,6 @@ st.sidebar.header(
 
 if season_col:
 
-
     seasons = sorted(
         df[season_col]
         .dropna()
@@ -224,7 +229,6 @@ if season_col:
 
     if selected_season != "All":
 
-
         df = df[
             df[season_col]
             .astype(str)
@@ -235,7 +239,6 @@ if season_col:
 
 
 if winner_col:
-
 
     teams = sorted(
         df[winner_col]
@@ -252,7 +255,6 @@ if winner_col:
 
     if selected_team != "All":
 
-
         df = df[
             df[winner_col]
             ==
@@ -265,17 +267,25 @@ if winner_col:
 # KPI CARDS
 # ======================================================
 
-
-col1, col2, col3, col4 = st.columns(4)
+col1,col2,col3,col4 = st.columns(4)
 
 
 
 with col1:
 
-    st.metric(
-        "Matches",
-        len(df)
-    )
+    if match_col:
+
+        st.metric(
+            "Matches",
+            df[match_col].nunique()
+        )
+
+    else:
+
+        st.metric(
+            "Matches",
+            len(df)
+        )
 
 
 
@@ -291,23 +301,34 @@ with col2:
 
 with col3:
 
-    st.metric(
-        "Teams",
-        df[winner_col].nunique()
-        if winner_col else 0
-    )
+    if team1_col and team2_col:
+
+        unique_teams = pd.concat(
+            [
+                df[team1_col],
+                df[team2_col]
+            ]
+        ).nunique()
+
+        st.metric(
+            "Teams",
+            unique_teams
+        )
+
+    else:
+
+        st.metric(
+            "Teams",
+            0
+        )
 
 
 
 with col4:
 
-
     if runs_col:
 
-        total_runs = pd.to_numeric(
-            df[runs_col],
-            errors="coerce"
-        ).sum()
+        total_runs = df[runs_col].sum()
 
 
         st.metric(
@@ -334,6 +355,7 @@ if winner_col:
 
     wins = (
         df[winner_col]
+        .dropna()
         .value_counts()
         .reset_index()
     )
@@ -350,7 +372,7 @@ if winner_col:
         x="Team",
         y="Wins",
         color="Wins",
-        title="Most Successful Teams"
+        title="Most Successful IPL Teams"
     )
 
 
@@ -383,6 +405,7 @@ if team1_col and team2_col:
 
     team_df = (
         teams
+        .dropna()
         .value_counts()
         .reset_index()
     )
@@ -398,7 +421,7 @@ if team1_col and team2_col:
         team_df,
         names="Team",
         values="Matches",
-        title="Team Participation"
+        title="Matches Played By Teams"
     )
 
 
@@ -410,7 +433,7 @@ if team1_col and team2_col:
 
 
 # ======================================================
-# RUN DISTRIBUTION
+# RUN ANALYSIS
 # ======================================================
 
 if runs_col:
@@ -424,8 +447,8 @@ if runs_col:
     fig = px.histogram(
         df,
         x=runs_col,
-        nbins=20,
-        title="Run Distribution"
+        nbins=30,
+        title="Runs Distribution"
     )
 
 
@@ -444,12 +467,13 @@ if venue_col:
 
 
     st.subheader(
-        "🏟 Top Venues"
+        "🏟 Top IPL Venues"
     )
 
 
     venue = (
         df[venue_col]
+        .dropna()
         .value_counts()
         .head(10)
         .reset_index()
@@ -467,7 +491,7 @@ if venue_col:
         x="Matches",
         y="Venue",
         orientation="h",
-        title="Top 10 IPL Venues"
+        title="Top 10 Stadiums"
     )
 
 
@@ -479,19 +503,20 @@ if venue_col:
 
 
 # ======================================================
-# PLAYER ANALYSIS
+# PLAYER OF MATCH ANALYSIS
 # ======================================================
 
 if player_col:
 
 
     st.subheader(
-        "⭐ Top Players"
+        "⭐ Top Player Of Match Awards"
     )
 
 
     players = (
         df[player_col]
+        .dropna()
         .value_counts()
         .head(10)
         .reset_index()
@@ -509,7 +534,7 @@ if player_col:
         x="Player",
         y="Awards",
         color="Awards",
-        title="Most Valuable Players"
+        title="Most Player Of Match Awards"
     )
 
 
@@ -521,16 +546,61 @@ if player_col:
 
 
 # ======================================================
-# DATA PREVIEW
+# TOP RUN SCORERS
+# ======================================================
+
+if runs_col and "batter" in df.columns:
+
+
+    st.subheader(
+        "🏏 Top Run Scorers"
+    )
+
+
+    batsmen = (
+        df.groupby("batter")[runs_col]
+        .sum()
+        .sort_values(
+            ascending=False
+        )
+        .head(10)
+        .reset_index()
+    )
+
+
+    batsmen.columns = [
+        "Batter",
+        "Runs"
+    ]
+
+
+    fig = px.bar(
+        batsmen,
+        x="Batter",
+        y="Runs",
+        color="Runs",
+        title="Highest Run Scorers"
+    )
+
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
+
+
+
+# ======================================================
+# DATA TABLE
 # ======================================================
 
 st.subheader(
-    "📋 Dataset Preview"
+    "📋 Complete Dataset Preview"
 )
 
 
 st.dataframe(
-    df,
+    df.head(1000),
     use_container_width=True
 )
 
