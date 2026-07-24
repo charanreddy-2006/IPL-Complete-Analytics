@@ -74,9 +74,7 @@ def load_data():
         )
 
 
-    st.error(
-        "❌ IPL Dataset Not Found"
-    )
+    st.error("❌ IPL Dataset Not Found")
 
     st.code(dataset_path)
 
@@ -89,7 +87,7 @@ df = load_data()
 
 
 # ======================================================
-# CLEAN COLUMN NAMES
+# CLEAN COLUMNS
 # ======================================================
 
 df.columns = (
@@ -101,7 +99,7 @@ df.columns = (
 
 
 # ======================================================
-# FIND COLUMN FUNCTION
+# FIND COLUMN
 # ======================================================
 
 def find_col(names):
@@ -137,8 +135,7 @@ season_col = find_col(
 
 winner_col = find_col(
     [
-        "winner",
-        "winning_team"
+        "winner"
     ]
 )
 
@@ -159,8 +156,7 @@ team2_col = find_col(
 
 venue_col = find_col(
     [
-        "venue",
-        "stadium"
+        "venue"
     ]
 )
 
@@ -176,9 +172,7 @@ runs_col = find_col(
 
 player_col = find_col(
     [
-        "player_of_match",
-        "player",
-        "pom"
+        "player_of_match"
     ]
 )
 
@@ -211,6 +205,8 @@ st.sidebar.header(
 
 
 
+# Season Filter
+
 if season_col:
 
     seasons = sorted(
@@ -238,27 +234,34 @@ if season_col:
 
 
 
-if winner_col:
+# Team Filter RESTORED
 
-    teams = sorted(
-        df[winner_col]
+if team1_col and team2_col:
+
+
+    all_teams = sorted(
+        pd.concat(
+            [
+                df[team1_col],
+                df[team2_col]
+            ]
+        )
         .dropna()
         .unique()
     )
 
 
     selected_team = st.sidebar.selectbox(
-        "Winner Team",
-        ["All"] + list(teams)
+        "Team",
+        ["All"] + list(all_teams)
     )
 
 
     if selected_team != "All":
 
         df = df[
-            df[winner_col]
-            ==
-            selected_team
+            (df[team1_col] == selected_team) |
+            (df[team2_col] == selected_team)
         ]
 
 
@@ -270,22 +273,13 @@ if winner_col:
 col1,col2,col3,col4 = st.columns(4)
 
 
-
 with col1:
 
-    if match_col:
-
-        st.metric(
-            "Matches",
-            df[match_col].nunique()
-        )
-
-    else:
-
-        st.metric(
-            "Matches",
-            len(df)
-        )
+    st.metric(
+        "Matches",
+        df[match_col].nunique()
+        if match_col else len(df)
+    )
 
 
 
@@ -303,23 +297,17 @@ with col3:
 
     if team1_col and team2_col:
 
-        unique_teams = pd.concat(
+        teams_count = pd.concat(
             [
                 df[team1_col],
                 df[team2_col]
             ]
         ).nunique()
 
-        st.metric(
-            "Teams",
-            unique_teams
-        )
-
-    else:
 
         st.metric(
             "Teams",
-            0
+            teams_count
         )
 
 
@@ -328,7 +316,10 @@ with col4:
 
     if runs_col:
 
-        total_runs = df[runs_col].sum()
+        total_runs = pd.to_numeric(
+            df[runs_col],
+            errors="coerce"
+        ).sum()
 
 
         st.metric(
@@ -389,7 +380,6 @@ if winner_col:
 
 if team1_col and team2_col:
 
-
     st.subheader(
         "📊 Team Participation"
     )
@@ -433,7 +423,51 @@ if team1_col and team2_col:
 
 
 # ======================================================
-# RUN ANALYSIS
+# TEAM WISE RUNS  (ADDED)
+# ======================================================
+
+if "batting_team" in df.columns and runs_col:
+
+
+    st.subheader(
+        "🏏 Team Wise Total Runs"
+    )
+
+
+    team_runs = (
+        df.groupby("batting_team")[runs_col]
+        .sum()
+        .sort_values(
+            ascending=False
+        )
+        .reset_index()
+    )
+
+
+    team_runs.columns = [
+        "Team",
+        "Runs"
+    ]
+
+
+    fig = px.bar(
+        team_runs,
+        x="Team",
+        y="Runs",
+        color="Runs",
+        title="Total Runs Scored By Teams"
+    )
+
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
+
+
+
+# ======================================================
+# RUN DISTRIBUTION
 # ======================================================
 
 if runs_col:
@@ -591,11 +625,11 @@ if runs_col and "batter" in df.columns:
 
 
 # ======================================================
-# DATA TABLE
+# DATA PREVIEW
 # ======================================================
 
 st.subheader(
-    "📋 Complete Dataset Preview"
+    "📋 Dataset Preview"
 )
 
 
