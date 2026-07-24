@@ -1,24 +1,31 @@
-SELECT batter,
-SUM(runs_scored) AS Runs
-FROM ipl_matches
-GROUP BY batter
-ORDER BY Runs DESC
+-- ==========================================
+-- ADVANCED IPL ANALYSIS
+-- ==========================================
+
+
+-- Toss decision impact
+
+SELECT
+    toss_decision,
+    COUNT(*) AS matches,
+    SUM(
+        CASE
+            WHEN toss_winner = winner
+            THEN 1
+            ELSE 0
+        END
+    ) AS toss_win_match_win
+FROM matches
+GROUP BY toss_decision;
+
+
+
+-- Venue with most matches
+
+SELECT
+    venue,
+    COUNT(*) AS matches
+FROM matches
+GROUP BY venue
+ORDER BY matches DESC
 LIMIT 10;
-SELECT bowler,
-COUNT(player_out) AS Wickets
-FROM ipl_matches
-WHERE player_out IS NOT NULL
-GROUP BY bowler
-ORDER BY Wickets DESC
-LIMIT 10;
-SELECT player_of_match,
-COUNT(*) AS Awards
-FROM ipl_matches
-GROUP BY player_of_match
-ORDER BY Awards DESC
-LIMIT 10;
-SELECT toss_winner,
-COUNT(*) AS Toss_Wins
-FROM ipl_matches
-GROUP BY toss_winner
-ORDER BY Toss_Wins DESC;

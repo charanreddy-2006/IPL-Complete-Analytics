@@ -1,38 +1,34 @@
-CREATE DATABASE ipl_analytics;
+-- ==========================================
+-- IPL TEAM PERFORMANCE ANALYSIS
+-- ==========================================
 
-USE ipl_analytics;
-CREATE TABLE ipl_matches (
-    match_id INT,
-    season INT,
-    date DATE,
-    city VARCHAR(100),
-    venue VARCHAR(255),
-    team1 VARCHAR(100),
-    team2 VARCHAR(100),
-    toss_winner VARCHAR(100),
-    toss_decision VARCHAR(20),
-    winner VARCHAR(100),
-    result VARCHAR(50),
-    result_margin INT,
-    player_of_match VARCHAR(100),
-    inning INT,
-    batting_team VARCHAR(100),
-    bowling_team VARCHAR(100),
-    over_number INT,
-    ball INT,
-    batter VARCHAR(100),
-    bowler VARCHAR(100),
-    non_striker VARCHAR(100),
-    runs_scored INT,
-    extras INT,
-    current_score INT,
-    wickets_down INT,
-    balls_remaining INT,
-    wickets_remaining INT,
-    current_run_rate FLOAT,
-    required_run_rate FLOAT,
-    target_score INT,
-    wicket_kind VARCHAR(100),
-    player_out VARCHAR(100),
-    fielder VARCHAR(100)
-);
+
+-- Total matches won by each team
+
+SELECT
+    winner,
+    COUNT(*) AS total_wins
+FROM matches
+WHERE winner IS NOT NULL
+GROUP BY winner
+ORDER BY total_wins DESC;
+
+
+
+-- Most participated teams
+
+SELECT
+    team,
+    COUNT(*) AS matches_played
+FROM
+(
+    SELECT team1 AS team
+    FROM matches
+
+    UNION ALL
+
+    SELECT team2 AS team
+    FROM matches
+)
+GROUP BY team
+ORDER BY matches_played DESC;
