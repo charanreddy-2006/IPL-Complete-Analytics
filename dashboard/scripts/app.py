@@ -15,7 +15,6 @@ st.set_page_config(
 )
 
 
-
 # ======================================================
 # LOAD CSS
 # ======================================================
@@ -119,45 +118,32 @@ def find_col(names):
 # ======================================================
 
 match_col = find_col(
-    [
-        "match_id"
-    ]
+    ["match_id"]
 )
 
 
 season_col = find_col(
-    [
-        "season",
-        "year"
-    ]
+    ["season","year"]
 )
 
 
 winner_col = find_col(
-    [
-        "winner"
-    ]
+    ["winner"]
 )
 
 
 team1_col = find_col(
-    [
-        "team1"
-    ]
+    ["team1"]
 )
 
 
 team2_col = find_col(
-    [
-        "team2"
-    ]
+    ["team2"]
 )
 
 
 venue_col = find_col(
-    [
-        "venue"
-    ]
+    ["venue"]
 )
 
 
@@ -171,9 +157,7 @@ runs_col = find_col(
 
 
 player_col = find_col(
-    [
-        "player_of_match"
-    ]
+    ["player_of_match"]
 )
 
 
@@ -187,13 +171,6 @@ st.title(
 )
 
 
-st.markdown(
-"""
-Professional Data Analyst Portfolio Project
-"""
-)
-
-
 
 # ======================================================
 # SIDEBAR FILTERS
@@ -203,9 +180,6 @@ st.sidebar.header(
     "Filters"
 )
 
-
-
-# Season Filter
 
 if season_col:
 
@@ -234,10 +208,7 @@ if season_col:
 
 
 
-# Team Filter RESTORED
-
 if team1_col and team2_col:
-
 
     all_teams = sorted(
         pd.concat(
@@ -282,7 +253,6 @@ with col1:
     )
 
 
-
 with col2:
 
     st.metric(
@@ -290,7 +260,6 @@ with col2:
         df[season_col].nunique()
         if season_col else 0
     )
-
 
 
 with col3:
@@ -311,7 +280,6 @@ with col3:
         )
 
 
-
 with col4:
 
     if runs_col:
@@ -325,13 +293,6 @@ with col4:
         st.metric(
             "Total Runs",
             int(total_runs)
-        )
-
-    else:
-
-        st.metric(
-            "Total Runs",
-            0
         )
         # ======================================================
 # WINNING TEAM ANALYSIS
@@ -423,7 +384,7 @@ if team1_col and team2_col:
 
 
 # ======================================================
-# TEAM WISE RUNS  (ADDED)
+# TEAM WISE RUNS
 # ======================================================
 
 if "batting_team" in df.columns and runs_col:
@@ -467,77 +428,7 @@ if "batting_team" in df.columns and runs_col:
 
 
 # ======================================================
-# RUN DISTRIBUTION
-# ======================================================
-
-if runs_col:
-
-
-    st.subheader(
-        "🏏 Run Distribution"
-    )
-
-
-    fig = px.histogram(
-        df,
-        x=runs_col,
-        nbins=30,
-        title="Runs Distribution"
-    )
-
-
-    st.plotly_chart(
-        fig,
-        use_container_width=True
-    )
-
-
-
-# ======================================================
-# VENUE ANALYSIS
-# ======================================================
-
-if venue_col:
-
-
-    st.subheader(
-        "🏟 Top IPL Venues"
-    )
-
-
-    venue = (
-        df[venue_col]
-        .dropna()
-        .value_counts()
-        .head(10)
-        .reset_index()
-    )
-
-
-    venue.columns = [
-        "Venue",
-        "Matches"
-    ]
-
-
-    fig = px.bar(
-        venue,
-        x="Matches",
-        y="Venue",
-        orientation="h",
-        title="Top 10 Stadiums"
-    )
-
-
-    st.plotly_chart(
-        fig,
-        use_container_width=True
-    )
-
-
-
-# ======================================================
-# PLAYER OF MATCH ANALYSIS
+# TOP PLAYER OF MATCH
 # ======================================================
 
 if player_col:
@@ -625,22 +516,6 @@ if runs_col and "batter" in df.columns:
 
 
 # ======================================================
-# DATA PREVIEW
-# ======================================================
-
-st.subheader(
-    "📋 Dataset Preview"
-)
-
-
-st.dataframe(
-    df.head(1000),
-    use_container_width=True
-)
-
-
-
-# ======================================================
 # FOOTER
 # ======================================================
 
@@ -648,5 +523,5 @@ st.markdown("---")
 
 
 st.caption(
-    "Built using Python • Pandas • Plotly • Streamlit • SQLite"
+    "Built using Python • SQL • Pandas • Plotly • Streamlit"
 )
